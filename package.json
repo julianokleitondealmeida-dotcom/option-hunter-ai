@@ -1,0 +1,23 @@
+{
+  "name": "option-hunter-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intelligent AI-powered options analysis platform for Brazilian and American markets",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "db:migrate": "cd apps/api && npm run db:migrate",
+    "db:seed": "cd apps/api && npm run db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.14",
+    "typescript": "^5.2.0"
+  },
+  "packageManager": "pnpm@8.10.0"
+}
