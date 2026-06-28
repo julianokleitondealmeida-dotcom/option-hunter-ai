@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  portfolio  Portfolio?
+  alerts     Alert[]
+  operations Operation[]
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  name      String
+  market    String   @default("BR") // BR or US
+  type      String   @default("stock") // stock, etf, fund
+  price     Float    @default(0)
+  volume    Float    @default(0)
+  volatility Float   @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  options Option[]
+}
+
+model Option {
+  id              String   @id @default(cuid())
+  assetId         String
+  asset           Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  symbol          String
+  type            String   // CALL or PUT
+  strikePrice     Float
+  expirationDate  DateTime
+  bid             Float    @default(0)
+  ask             Float    @default(0)
+  lastPrice       Float    @default(0)
+  volume          Int      @default(0)
+  openInterest    Int      @default(0)
+  impliedVolatility Float  @default(0)
+  delta           Float    @default(0)
+  gamma           Float    @default(0)
+  theta           Float    @default(0)
+  vega            Float    @default(0)
+  rho             Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([assetId])
+  @@index([expirationDate])
+}
+
+model Strategy {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  type            String   // bullish, bearish, neutral, volatility
+  maxProfit       Float    @default(0)
+  maxLoss         Float    @default(0)
+  breakEven       Float    @default(0)
+  probabilityOfProfit Float @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Portfolio {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalValue   Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  positions    Position[]
+  riskMetrics  RiskMetrics?
+}
+
+model Position {
+  id          String   @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  assetId     String
+  quantity    Float    @default(0)
+  averagePrice Float   @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([portfolioId])
+}
+
+model RiskMetrics {
+  id          String   @id @default(cuid())
+  portfolioId String   @unique
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  delta       Float    @default(0)
+  gamma       Float    @default(0)
+  theta       Float    @default(0)
+  vega        Float    @default(0)
+  varValue    Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Operation {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategyId  String?
+  status      String   @default("open") // open, closed, expired
+  entryPrice  Float    @default(0)
+  exitPrice   Float    @default(0)
+  profit      Float    @default(0)
+  createdAt   DateTime @default(now())
+  closedAt    DateTime?
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // opportunity, risk, news
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
